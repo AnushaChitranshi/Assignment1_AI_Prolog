@@ -148,11 +148,13 @@ hybridSort(LIST, SMALL, mergeSort, T, SLIST, ORDER):-
 hybridSort([H|T], SMALL, quickSort, T, SLIST, increasing):-
 			length(LIST, N), N>T,      
 			split(H, T, L1, L2),
-    			FILLINHERE several lines in the body of this clause
-    			append(S1, [H|S2], SLIST).
+			hybridSort(L1, SMALL, quicksort, T, S1, increasing),
+			hybridSort(L2, SMALL, quicksort, T, S2, increasing),
+			append(S1, [H|S2], SLIST).
 
 hybridSort([H|T], SMALL, quickSort, T, SLIST, decreasing):-
 			length(LIST, N), N>T,      
 			split(H, T, L1, L2),
-    			FILLINHERE several lines in the body of this clause
-    			append(S1, [H|S2], SLIST).
+			hybridSort(L1, SMALL, quicksort, T, S1, decreasing),
+			hybridSort(L2, SMALL, quicksort, T, S2, decreasing),
+			append(S1, [H|S2], SLIST).
