@@ -92,27 +92,27 @@ split_in_half(L, L1, L2):-
 merge([], L, L, _).
 merge(L, [],L, _).
 merge([H1|T1],[H2|T2],[H1| T], increasing):-
-						increasing(H1,H2),
-						merge(T1,[H2|T2],T, increasing).
+				increasing(H1,H2),
+				merge(T1,[H2|T2],T, increasing).
 merge([H1|T1], [H2|T2], [H2|T], increasing):-
-						decreasing(H1, H2),
-						merge([H1|T1],T2, T , increasing).
+				decreasing(H1, H2),
+				merge([H1|T1],T2, T , increasing).
    
 merge([H1|T1],[H2|T2],[H1|T], decreasing):-
-						decreasing(H1,H2),
-						merge(T1,[H2|T2],T, decreasing).
+				decreasing(H1,H2),
+				merge(T1,[H2|T2],T, decreasing).
 merge([H1|T1], [H2|T2], [H2|T], decreasing):-
-						increasing(H1, H2),
-						merge([H1|T1], T2, T, decreasing).
+				increasing(H1, H2),
+				merge([H1|T1], T2, T, decreasing).
 
 /* Comment describing split for quickSort */
 split(_, [],[],[]). 
 split(X, [H|T], [H|SMALL], BIG):- 
-								H =< X, 
-    							split(X, T, SMALL, BIG).    
+				H =< X, 
+    				split(X, T, SMALL, BIG).    
 split(X, [H|T], SMALL, [H|BIG]):-
-    							X =< H,
-    							split(X, T, SMALL, BIG). 
+    				X =< H,
+    				split(X, T, SMALL, BIG). 
 
 /* Comment describing quickSort */
 quickSort([], [], _).
@@ -131,28 +131,28 @@ quickSort([H|T], LS, decreasing):-
 
 /* Comment describing hybridSort */
 hybridSort(LIST, bubbleSort, BIGALG, T, SLIST, ORDER):-
-    		length(LIST, N), N=<T,      
-    		bubbleSort(LIST, FILLINHERE, ORDER).
+    			length(LIST, N), N=<T,      
+    			bubbleSort(LIST, FILLINHERE, ORDER).
 
 hybridSort(LIST, insertionSort, BIGALG, T, SLIST, ORDER):-
 			length(LIST, N), N=<T,
-     		insertionSort(LIST, SLIST, ORDER).
+     			insertionSort(LIST, SLIST, ORDER).
 
 hybridSort(LIST, SMALL, mergeSort, T, SLIST, ORDER):-
 			length(LIST, N), N>T,      
 			split_in_half(LIST, L1, L2),
    			hybridSort(L1, SMALL, mergeSort, T, S1, ORDER),
-    		hybridSort(L2, SMALL, mergeSort, T, S2, ORDER),
-    		merge(S1,S2, SLIST, ORDER).
+    			hybridSort(L2, SMALL, mergeSort, T, S2, ORDER),
+    			merge(S1,S2, SLIST, ORDER).
 
 hybridSort([H|T], SMALL, quickSort, T, SLIST, increasing):-
 			length(LIST, N), N>T,      
 			split(H, T, L1, L2),
-    		FILLINHERE several lines in the body of this clause
-    		append(S1, [H|S2], SLIST).
+    			FILLINHERE several lines in the body of this clause
+    			append(S1, [H|S2], SLIST).
 
 hybridSort([H|T], SMALL, quickSort, T, SLIST, decreasing):-
 			length(LIST, N), N>T,      
 			split(H, T, L1, L2),
-    		FILLINHERE several lines in the body of this clause
-    		append(S1, [H|S2], SLIST).
+    			FILLINHERE several lines in the body of this clause
+    			append(S1, [H|S2], SLIST).
