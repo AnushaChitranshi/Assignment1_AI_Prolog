@@ -134,6 +134,7 @@ quickSort([H|T], LS, decreasing):-
 /* hybridSort selects a sorting method based on the list size with respect to the entered threshold (T)
 when the length of LIST is less than THRESHOLD, then hybridSort calls SMALL
 when the length of list LIST is greater than or equal to THRESHOLD, then hybridSort behaves like one of the BIG sorts */
+
 hybridSort(LIST, bubbleSort, BIGALG, T, SLIST, ORDER):-
     			length(LIST, N), N=<T,      
     			bubbleSort(LIST, FILLINHERE, ORDER).
@@ -152,5 +153,13 @@ hybridSort(LIST, SMALL, mergeSort, T, SLIST, ORDER):-
 hybridSort([H|T], SMALL, quickSort, T, SLIST, increasing):-
 			length(LIST, N), N>T,      
 			split(H, T, L1, L2),
-			hybridSort(L1, SMALL, quicksort, T, S1, increasing),
-			hybridSort(L2, SMALL, quicks
+    		hybridSort(L1, SMALL, quicksort, T, S1, increasing),
+    		hybridSort(L2, SMALL, quicksort, T, S2, increasing),
+    		append(S1, [H|S2], SLIST).
+
+hybridSort([H|T], SMALL, quickSort, T, SLIST, decreasing):-
+			length(LIST, N), N>T,      
+			split(H, T, L1, L2),
+    		hybridSort(L1, SMALL, quicksort, T, S1, decreasing),
+    		hybridSort(L2, SMALL, quicksort, T, S2, decreasing),
+    		append(S1, [H|S2], SLIST).
