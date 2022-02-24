@@ -1,3 +1,4 @@
+
 /* cities(L) holds when L is the list of cities on the road map */
 cities(["Arad", "Zerind", "Oradea", "Sibiu", "Timisoara", "Fagaras", "Rimnicu Vlicea", "Lugoj", "Mehadia",  "Drobeta", "Craiova", "Pitesti", "Bucharest", "Giurgiu", "Urziceni", "Hirsova", "Eforie", "Vaslui", "Iasi", "Neamt"]).
 
@@ -34,13 +35,12 @@ from("Vaslui", "Iasi", 92).
 from("Iasi", "Neamt", 87).
 
 % c(C1, C2, D): symmetric version of from. Thus
-connected(X, Y, D):- from(X, Y, D).
-connected(X, Y, D):- from(Y, X, D).
+c(C1, C2, D):- from(C1, C2, D).
+c(C1, C2, D):- from(C2, C1, D).
 
 /* sld(C1, C2, D) is the estimate of the straight line distance between cities C1 and C2.  Note that if C1 and C2 are linked directly, then sld(C1, C2, D) is actually c(C1, C2, D).  Otherwise, we can use the ideas described in this assignment:
 */
-sld(C1, C2, D):-connected(C1, C2, D).  
-sld(C1, C2, D):-connected(C2, C1, D).  
+sld(C1, C2, D):-c(C1, C2, D).  
 % From the table above, we have:
 sld("Arad", "Bucharest",366).
 sld("Bucharest", "Bucharest",0).
@@ -63,6 +63,7 @@ sld("Timisoara", "Bucharest", 329).
 sld("Urziceni", "Bucharest",80).
 sld("Vaslui", "Bucharest", 199).
 sld("Zerind", "Bucharest", 374).
+
 %----------------------------------------------------------------------------
 % Example of incomplete but otherwise working, depth-first search code
 
@@ -79,7 +80,7 @@ dfs(X, [X],_):-
 % Stopping condition: Expand to all nodes, outputing all possible solution paths
 % else expand X by Y and find path from Y
 dfs(X, [X|Ypath], VISITED):-
- 	connected(X, Y, _),
+ 	connected(X, Y),
   	negmember(Y, VISITED),
   	dfs(Y, Ypath, [Y|VISITED]).
 
@@ -95,6 +96,10 @@ negmember(X, [_|T]):-
     !,
     fail.
 negmember(_, _).
+
+% Undirected graph:
+connected(X, Y):- c(X, Y).
+connected(X, Y):- c(Y, X).
 
 %----------------------------------------------------------------------------
 % Example of incomplete but otherwise working, breadth-first search code
@@ -115,7 +120,7 @@ bfs([PATH|TPaths], SOL):-
  
 expand([HPath|TPath], NPaths):-
     findall([NEXT, HPath|TPath],
-       (connected(HPath, NEXT, _),is_not_member(NEXT, [HPath|TPath])),
+       (connected(HPath, NEXT),is_not_member(NEXT, [HPath|TPath])),
         NPaths).
 
 %We next wrap this in a predicate solve_BF as follows:
@@ -124,30 +129,33 @@ solve_BFS(S, SOL):-
     reverse(SOL,Path).
 %----------------------------------------------------------------------------
 %Greedy Search
-% Finding least cost
+% Trivial: if X is the goal return X as the path from X to X.
+% Undirected graph:
+connected_w_cost(X, Y, Cost):- c(X, Y, Cost).
+connected_w_cost(X, Y, Cost):- c(Y, X, Cost).
 connected_w_least_cost(X, Y):-
-    findall([Node_connected_to_X, Cost], connected(X, Node_connected_to_X, Cost), Fringe),
-    yield_least_cost(Fringe, Y).
-
-yield_least_cost(Fringe, Y):-
+    findall([Node_connected_to_X, Cost], connected_w_cost(X, Node_connected_to_X, Cost), Fringe),
     find_least_cost(Fringe, Node_and_cost),
 	get_node(Node_and_cost, Y).
 
 find_least_cost([Min],Min).
-find_least_cost([[H|CostH],[K|CostK]|T],M) :-
-    CostH =< CostK,                             
-    find_least_cost([[H|CostH]| T],M).               
-find_least_cost([[H|CostH],[K|CostK]|T],M) :-
-    CostH > CostK,                             
-    find_least_cost([[K|CostK]| T],M).               
+find_least_cost([H,K|T],M) :-
+    H =< K,                             
+    find_least_cost([H|T],M).               
+find_least_cost([H,K|T],M) :-
+    H > K,                              
+    find_least_cost([K|T],M).               
 
 get_node([], []).
 get_node([Node|_], Node).
-   
+    
+
 greedy_search(X, [X],_):-
 	goal(X),
     !.
 
+% Stopping condition: Expand to all nodes, outputing all possible solution paths
+% else expand X by Y and find path from Y
 greedy_search(X, [X|Ypath], VISITED):-
  	connected_w_least_cost(X, Y),
   	negmember(Y, VISITED),
@@ -155,39 +163,30 @@ greedy_search(X, [X|Ypath], VISITED):-
 %----------------------------------------------------------------------------
 % Directed graph:
 %Test set for dfs, bfs
-:- discontiguous from/3.
-from(a, b, 1).
-from(a, h, 4).
-from(b, c, 3).
-from(a, d, 2).
-from(b, i, 5).
-from(d, e, 6).
-from(d, f, 3).
-from(f, e, 2).
+% c(a, b).
+% c(a, h).
+% c(b, c).
+% c(a, d).
+% c(b, i).
+% c(d, e).
 
 %Test set 2
-:- discontiguous from/3.
-%from(a, b, 1).
-%from(a, h, 2).
-%from(b, c, 3).
-%from(b, i, 4).
-%from(c, d, 5).
-%from(d, e, 6).
-%from(d, i, 7).
-%from(e, f, 8).
-%from(f, g, 9).
-%from(f, h, 10).
-%from(f, i, 11).
-%from(g, h, 12).
-%from(h, i, 13).
+
+
+%Test set for greedy
+c(a, b, 1).
+c(a, h, 2).
+c(b, c, 3).
+c(a, d, 4).
+c(b, i, 5).
+c(d, e, 6).
+
 
 % Specify the goal before querying the go predicate.
 goal(e).
-goal("Bucharest").
 
 % query: ?-dfs(a, P, [a]).
 % query: ?-solve_BFS(a, SOL).
 % query: ?-greedy_search(a, P, [a]).
 
-% solve_BFS("Oradea", SOL).
-% dfs("Oradea", P, ["Oradea"]).
+
