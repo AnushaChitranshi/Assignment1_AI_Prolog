@@ -105,23 +105,28 @@ connected(X, Y):- c(Y, X).
 % Example of incomplete but otherwise working, breadth-first search code
 /* The stopping rule for this condition is obtained when  the current path to be expanded starts with the goal node, that is:*/
 
+is_not_member(_,[]).
+is_not_member(X, [H|T]):-
+    not(X = H),
+    is_not_member(X, T).
+
 bfs([[X |T]|_PATHS], [X|T]):-
                goal(X).
 
 bfs([PATH|TPaths], SOL):-
           expand(PATH,  NPaths),
           append(TPaths, NPaths, NEWPATHS),
-          bfs(FILL IN, SOL).
+          bfs(NEWPATHS, SOL).
  
 expand([HPath|TPath], NPaths):-
     findall([NEXT, HPath|TPath],
-       (connected(HPath, NEXT),negmember(NEXT, [HPath|TPath])),
+       (connected(HPath, NEXT),is_not_member(NEXT, [HPath|TPath])),
         NPaths).
 
 %We next wrap this in a predicate solve_BF as follows:
 solve_BFS(S, SOL):-
-         bfs([[S]], S1), 
-         FILL IN(S1,SOL).
+    bfs([[S]], Path),
+    reverse(SOL,Path).
 
 %----------------------------------------------------------------------------
 % Directed graph:
