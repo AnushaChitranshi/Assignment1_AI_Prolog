@@ -1,30 +1,23 @@
 /* cities(L) holds when L is the list of cities on the road map */
-cities(["Arad", "Zerind", "Oradea", "Sibiu", "Timisoara", "Fagaras", "Rimnicu Vlicea", "Lugoj", "Mehadia",  "Drobeta", "Craiova", "Pitesti", "Bucharest", "Giurgiu", "Urziceni", "Hirsova", "Eforie", "Vaslui", "Iasi", "Neamt"]).
+cities(["Arad", "Zerind", "Oradea", "Sibiu", "Timisoara", "Fagaras", "Rimnicu Vlicea", "Lugoj", "Mehandia",  "Drobeta", "Craiova", "Pitesti", "Bucharest", "Giurgiu", "Urziceni", "Hirsova", "Eforie", "Vaslui", "Iasi", "Neamt"]).
 
 /* from(C1,C2, D) holds true  when there is a direct link from city C1 to city C2 and the distance between them is D.  Note that the predicate from is NOT symmetric. Thus, based on the map we have */
 from("Arad", "Zerind", 75).
 from("Arad", "Sibiu", 140).
 from("Arad", "Timisoara", 118).
 from("Zerind", "Oradea", 71).
-
 from("Sibiu", "Oradea", 151).
 from("Sibiu", "Fagaras", 99).
 from("Sibiu", "Rimnicu Vlicea", 80).
-
 from("Fagaras", "Bucharest", 211).
-
 from("Rimnicu Vlicea", "Pitesti", 97).
 from("Rimnicu Vlicea", "Craiova", 146).
-
 from("Craiova", "Pitesti", 138).
 from("Bucharest", "Pitesti", 101).
-
 from("Craiova", "Drobeta", 120).
-
-from("Mehadia", "Drobeta", 75).
-from("Mehadia", "Lugoj", 70).
+from("Mehandia", "Drobeta", 75).
+from("Mehandia", "Lugoj", 70).
 from("Lugoj", "Timisoara", 111).
-
 from("Giurgiu", "Bucharest", 90).
 from("Bucharest", "Urziceni", 85).
 from("Urziceni", "Hirsova", 98).
@@ -52,7 +45,6 @@ sld("Giurgiu", "Bucharest",77).
 sld("Hirsova", "Bucharest",151).
 sld("Iasi", "Bucharest",226).
 sld("Lugoj", "Bucharest",244).
-
 sld("Mehandia", "Bucharest",241).
 sld("Neamt", "Bucharest",234).
 sld("Oradea", "Bucharest",380).
@@ -120,38 +112,41 @@ expand([HPath|TPath], NPaths):-
 
 %We next wrap this in a predicate solve_BF as follows:
 solve_BFS(S, SOL):-
-    bfs([[S]], Path),
-    reverse(SOL,Path).
+    bfs([[S]], S1),
+    reverse(S1,SOL).
+
 %----------------------------------------------------------------------------
 %Greedy Search
 % Finding least cost
-connected_w_least_cost(X, Y):-
-    findall([Node_connected_to_X, Cost], connected(X, Node_connected_to_X, Cost), Fringe),
-    yield_least_cost(Fringe, Y).
-
-yield_least_cost(Fringe, Y):-
-    find_least_cost(Fringe, Node_and_cost),
-	get_node(Node_and_cost, Y).
-
-find_least_cost([Min],Min).
-find_least_cost([[H|CostH],[K|CostK]|T],M) :-
-    CostH =< CostK,                             
-    find_least_cost([[H|CostH]| T],M).               
-find_least_cost([[H|CostH],[K|CostK]|T],M) :-
-    CostH > CostK,                             
-    find_least_cost([[K|CostK]| T],M).               
-
-get_node([], []).
-get_node([Node|_], Node).
-   
-greedy_search(X, [X],_):-
-	goal(X),
-    !.
-
-greedy_search(X, [X|Ypath], VISITED):-
- 	connected_w_least_cost(X, Y),
+greedy(X, [X], _) :- goal(X), !.
+greedy(X, [X|Ypath], VISITED):-
+ 	connected(X, Y, _), connected(X, Z, _),
+    sld(Y,"Bucharest",D1), sld(Z,"Bucharest",D2),
+    D1 =< D2, Y \== Z,
   	negmember(Y, VISITED),
-  	dfs(Y, Ypath, [Y|VISITED]).
+  	greedy(Y, Ypath, [Y|VISITED]).
+
+%A* algorithm
+
+a_star([[X |T]|_PATHS], [X|T]):-
+               goal(X).
+a_star([PATH|TPaths], SOL):-
+          expand_star(PATH,  NPaths),
+          append(TPaths, NPaths, NEWPATHS),
+          a_star(NEWPATHS, SOL).
+
+sum(X,Y,s) :- connected(X,Y,D1), sld(Y,"Bucharest",D2), s is D1 + D2.
+
+expand_star([HPath|TPath], NPaths):-
+    findall([NEXT, HPath|TPath],
+       (connected(HPath, NEXT, _),is_not_member(NEXT, [HPath|TPath])),
+        NPaths), sum(HPath,_,Sum1), sum(TPath,_, Sum2), Sum1 =< Sum2. 
+
+%We next wrap this in a predicate solve_a_star as follows:
+solve_a_star(S, SOL):-
+         a_star([[S]], S1), 
+         reverse(S1,SOL).
+
 %----------------------------------------------------------------------------
 % Directed graph:
 %Test set for dfs, bfs
